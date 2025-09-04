@@ -21,23 +21,13 @@ export class MCPClient {
     
     await this.client.connect(transport);
   }
-  
-  async queryDatabase(sql: string) {
+
+  async chat(message: string) {
     if (!this.client) throw new Error("Client not connected");
 
     const result = await this.client.callTool({
-      name: "query",
-      arguments: { sql }
-    });
-    
-    return result;
-  }
-
-  async getTables() {
-    if (!this.client) throw new Error("Client not connected");
-    
-    const result = await this.client.readResource({
-      uri: "tables://list"
+      name: "chat",
+      arguments: { message }
     });
     
     return result;

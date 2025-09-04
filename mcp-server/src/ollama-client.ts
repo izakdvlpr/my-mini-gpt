@@ -5,11 +5,7 @@ export class OllamaClient {
     this.baseUrl = baseUrl;
   }
 
-  async generate(model: string, prompt: string, context?: string) {
-    const fullPrompt = context 
-      ? `Contexto do banco de dados:\n${context}\n\nPergunta do usuário: ${prompt}`
-      : prompt;
-
+  async generate(model: string, prompt: string) {
     const response = await fetch(`${this.baseUrl}/api/generate`, {
       method: "POST",
       headers: {
@@ -17,7 +13,7 @@ export class OllamaClient {
       },
       body: JSON.stringify({
         model,
-        prompt: fullPrompt,
+        prompt,
         stream: false,
         options: {
           temperature: 0.7,
@@ -34,12 +30,8 @@ export class OllamaClient {
     
     return data.response;
   }
-
-  async generateStream(model: string, prompt: string, context?: string) {
-    const fullPrompt = context 
-      ? `Contexto do banco de dados:\n${context}\n\nPergunta do usuário: ${prompt}`
-      : prompt;
-
+  
+  async generateStream(model: string, prompt: string) {
     const response = await fetch(`${this.baseUrl}/api/generate`, {
       method: "POST",
       headers: {
@@ -47,7 +39,7 @@ export class OllamaClient {
       },
       body: JSON.stringify({
         model,
-        prompt: fullPrompt,
+        prompt,
         stream: true,
       }),
     });
@@ -58,7 +50,7 @@ export class OllamaClient {
 
     return response.body;
   }
-
+  
   async listModels() {
     const response = await fetch(`${this.baseUrl}/api/tags`);
     
