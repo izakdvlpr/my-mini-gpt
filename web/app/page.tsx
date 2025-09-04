@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { Send, Database, Bot, User } from 'lucide-react';
+import { useState } from 'react';
+import { Send, Bot, User } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -10,38 +10,10 @@ interface Message {
   timestamp: Date;
 }
 
-interface Model {
-  name: string;
-  size: number;
-  modified_at: string;
-}
-
-export default function ChatInterface() {
+export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [models, setModels] = useState<Model[]>([]);
-  const [selectedModel, setSelectedModel] = useState('llama3.2:3b');
-
-  // Carrega modelos disponíveis
-  useEffect(() => {
-    fetchModels();
-  }, []);
-
-  const fetchModels = async () => {
-    try {
-      const response = await fetch('http://localhost:4001/models');
-      const data = await response.json();
-      if (data.models) {
-        setModels(data.models);
-        if (data.models.length > 0 && !selectedModel) {
-          setSelectedModel(data.models[0].name);
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao carregar modelos:', error);
-    }
-  };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -64,8 +36,7 @@ export default function ChatInterface() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: input,
-          model: selectedModel
+          message: input
         }),
       });
 
@@ -77,7 +48,7 @@ export default function ChatInterface() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response,
+        content: data?.message ?? data?.error ?? 'Desculpe, não consegui processar sua solicitação.',
         sender: 'assistant',
         timestamp: new Date()
       };
@@ -86,12 +57,14 @@ export default function ChatInterface() {
 
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: 'Desculpe, ocorreu um erro. Verifique se o Ollama está rodando e se você tem algum modelo baixado.',
         sender: 'assistant',
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
@@ -114,31 +87,14 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto bg-gray-50">
-      <div className="bg-white shadow-sm border-b p-4">
+      <div className="bg-white border-b border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Database className="w-6 h-6 text-blue-600" />
+            <Bot className="w-6 h-6 text-blue-600" />
+            
             <h1 className="text-xl font-semibold text-gray-800">
               My Mini GPT
             </h1>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <label htmlFor="model-select" className="text-sm text-gray-600">
-              Modelo:
-            </label>
-            <select
-              id="model-select"
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {models.map((model) => (
-                <option key={model.name} value={model.name}>
-                  {model.name}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
       </div>
@@ -214,7 +170,7 @@ export default function ChatInterface() {
         )}
       </div>
 
-      <div className="bg-white border-t p-4">
+      <div className="bg-white border-t border-gray-200 p-4">
         <div className="flex gap-2">
           <textarea
             value={input}
@@ -233,9 +189,6 @@ export default function ChatInterface() {
             <Send className="w-4 h-4" />
             Enviar
           </button>
-        </div>
-        <div className="text-xs text-gray-500 mt-2">
-          Pressione Enter para enviar, Shift+Enter para nova linha
         </div>
       </div>
     </div>
